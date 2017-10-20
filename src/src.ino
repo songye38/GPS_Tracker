@@ -198,6 +198,7 @@ void useInterrupt(boolean v) {
 
 void loop()                     
 {
+  display_batterylevel();
   read_gps_data();
 }
 
@@ -331,7 +332,52 @@ void read_gps_data()
       set_blue_pin(1);
     }
   }
+}
+
+/*
+ * code about battery and battery display
+ */
+
+void display_batterylevel()
+{
+  //read the voltage and convert it to volt
+  double curvolt = double( readVcc() ) / 1000;
+  // check if voltge is bigger than 4.2 volt so this is a power source
+  if(curvolt > 4.8)
+  {
+     set_green_pin(4);
+  }
+  if(curvolt <= 4.8 && curvolt > 4.0)
+  {
+    set_yellow_pin(4);
+  }
+  if(curvolt <= 4.0 && curvolt > 3.0)
+  {
+    set_yellow_pin(4);
+  }
+  if(curvolt <= 3.0 && curvolt > 2.0)
+  {
+    set_red_pin(4);
+  }
+  if(curvolt <= 2.0 && curvolt > 1.0)
+  {
+    set_red_pin(4);
+  }
   
+}
+
+long readVcc() 
+{
+  long result;
+  // Read 1.1V reference against AVcc
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Convert
+  while (bit_is_set(ADCSRA, ADSC));
+  result = ADCL;
+  result |= ADCH << 8;
+  result = 1126400L / result; // Back-calculate AVcc in mV
+  return result;
 }
 
 
