@@ -15,7 +15,7 @@ const int sd = 2;
 const int tracking =3;
 const int battery = 4;
 
-int check_sd =0;
+
 
 
 
@@ -96,17 +96,18 @@ void useInterrupt(boolean v) {
 uint32_t timer = millis();
 void loop()                     // run over and over again
 {
+    check_sd();
   //display_batterylevel();
-  check_sd_card();
-  int gps_check = check_gps();
-  if(gps_check==1 && check_sd==1)
-  {
-    read_gps_write_to_sd();
-  }
-  else 
-  {
-    
-  }
+  //check_sd_card();
+//  int gps_check = check_gps();
+//  if(gps_check==1 && check_sd==1)
+//  {
+//    read_gps_write_to_sd();
+//  }
+//  else 
+//  {
+//    
+//  }
 }
 
 int check_gps()
@@ -180,23 +181,46 @@ void set_yellow_pin(uint16_t pinNum)
   strip.show();
 }
 
-void check_sd_card()
+//void check_sd_card()
+//{
+//     Serial.print("Initializing SD card...");
+//
+//    if (!SD.begin(4)) 
+//    {
+//      Serial.println("initialization failed!");
+//      check_sd = 0;
+//      set_red_pin(2);
+//      return;
+//    }
+//    else 
+//    {
+//       Serial.println("initialization done.");
+//       set_red_pin(2);
+//       check_sd =1;
+//    }
+//}
+
+void check_sd()
 {
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+
+
   Serial.print("Initializing SD card...");
 
-    if (!SD.begin(chipSelect)) 
-    {
-      Serial.println("initialization failed!");
-      check_sd = 0;
-      set_red_pin(2);
-      return;
-    }
-    else 
-    {
-       Serial.println("initialization done.");
-       set_red_pin(2);
-       check_sd =1;
-    }
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    set_red_pin(2);
+    return;
+  }
+  else 
+  {
+     Serial.println("initialization done.");
+     set_green_pin(2);
+  }
+ 
 }
 
 void read_gps_write_to_sd()
