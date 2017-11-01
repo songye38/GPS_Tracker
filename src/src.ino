@@ -15,10 +15,6 @@ const int sd = 2;
 const int tracking =3;
 const int battery = 4;
 
-
-
-
-
  /*
   * setting for sd card
   */
@@ -44,26 +40,20 @@ void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
 
 void setup()  
 {
-  // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
-  // also spit it out
   Serial.begin(9600);
   Serial.println("Adafruit GPS library basic test!");
-
-  // 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
   GPS.begin(9600);
- 
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
 
-  // Set the update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz update rate
   GPS.sendCommand(PGCMD_ANTENNA);
   useInterrupt(true);
   delay(1000);
-  // Ask for firmware version
   mySerial.println(PMTK_Q_RELEASE);
   strip.begin();
   strip.show(); 
   set_green_pin(0);
+  initialize_sd();
 }
 
 
@@ -96,18 +86,7 @@ void useInterrupt(boolean v) {
 uint32_t timer = millis();
 void loop()                     // run over and over again
 {
-    check_sd();
-  //display_batterylevel();
-  //check_sd_card();
-//  int gps_check = check_gps();
-//  if(gps_check==1 && check_sd==1)
-//  {
-//    read_gps_write_to_sd();
-//  }
-//  else 
-//  {
-//    
-//  }
+    read_gps_write_to_sd();
 }
 
 int check_gps()
@@ -181,35 +160,9 @@ void set_yellow_pin(uint16_t pinNum)
   strip.show();
 }
 
-//void check_sd_card()
-//{
-//     Serial.print("Initializing SD card...");
-//
-//    if (!SD.begin(4)) 
-//    {
-//      Serial.println("initialization failed!");
-//      check_sd = 0;
-//      set_red_pin(2);
-//      return;
-//    }
-//    else 
-//    {
-//       Serial.println("initialization done.");
-//       set_red_pin(2);
-//       check_sd =1;
-//    }
-//}
 
-void check_sd()
+void initialize_sd()
 {
-  Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
-
-
-  Serial.print("Initializing SD card...");
-
   if (!SD.begin(4)) {
     Serial.println("initialization failed!");
     set_red_pin(2);
@@ -220,7 +173,6 @@ void check_sd()
      Serial.println("initialization done.");
      set_green_pin(2);
   }
- 
 }
 
 void read_gps_write_to_sd()
@@ -229,6 +181,7 @@ void read_gps_write_to_sd()
   String latitude;
   String logitude;
   String date;
+  String time;
   // in case you are not using the interrupt above, you'll
   // need to 'hand query' the GPS, not suggested :(
   if (! usingInterrupt) {
@@ -264,9 +217,9 @@ void read_gps_write_to_sd()
     String minu = String(GPS.minute);
     String sec = String(GPS.seconds);
     
-    String time = hour + ":" + minu + ":" + sec;
-//     dataString += time;
-//     dataString +=",";
+    time = hour + ":" + minu + ":" + sec;
+//    dataString += time;
+//    dataString +=",";
     //strcpy(fTime, time.c_str());
     // 시분초를 HH:MM:SS형태로 바꿔주고, String값을 char*로 바꿔주어 LCD에 출력할 수 있도록 합니다.
     
@@ -277,7 +230,7 @@ void read_gps_write_to_sd()
     String month = String(GPS.month);
     String year = String(GPS.year);
     
-    String date = "20" + year + "/" + month + "/" + day;
+    date = "20" + year + "/" + month + "/" + day;
    
     char *fDate = new char[date.length() + 1];
 //     date = fDate;
@@ -293,56 +246,44 @@ void read_gps_write_to_sd()
 
     if (GPS.fix) {
       set_green_pin(1);
-      char lat[20];
-      char loc[20];
-      dtostrf(GPS.latitude, 9, 4, lat);
-      dtostrf(GPS.longitude, 9, 4, loc);
+      dataString += time;
+      dataString +=",";
+      dataString += date;
+      dataString +=",";
+//      char lat[20];
+//      char loc[20];
+//      dtostrf(GPS.latitude, 9, 4, lat);
+//      dtostrf(GPS.longitude, 9, 4, loc);
       // dtostrf는 GPS.latitude와 GPS.longitude의 값(float값)을 Char* 로 바꿔줍니다.
 
-      lat[4] = lat[3];
-      lat[3] = lat[2];
-      lat[2] = ' ';
-            
-      loc[5] = loc[4];
-      loc[4] = loc[3];
-      loc[3] = ' ';
-
-    Serial.println("..........................");
-    Serial.print("lat : ");
-    Serial.println(lat);   //이렇게 해주면 값은 제대로 찍혀 나온다.. 다만 sd카드에 저장이 안된다
-    Serial.println("..........................");
-    Serial.println("..........................");
-
-//    latitude = lat;
-//    logitude = loc;
-    Serial.println("..........................");
-    Serial.print("latitude : ");
-    Serial.println(latitude);   //이렇게 해주면 값은 제대로 찍혀 나온다.. 다만 sd카드에 저장이 안된다
-    Serial.println("..........................");
-    Serial.println("..........................");
-
-//    if(lat==NULL || loc==NULL)
-//    {
-//      set_yellow_pin(3);
-//      return;
-//    }
-    
+//      lat[4] = lat[3];
+//      lat[3] = lat[2];
+//      lat[2] = ' ';
+//            
+//      loc[5] = loc[4];
+//      loc[4] = loc[3];
+//      loc[3] = ' ';
 
       
       // GPS.latitude와 GPS.longitude값을 받아오면 소숫점 자리가 4번째 자리에 찍혀 있습니다.
       // latitude = 3728,8640, longitude = 12700.8960
       // 이것을 소수점 두번째 자리에 찍는 작업입니다.      
-       dataString += lat;
+       dataString += GPS.latitude;
        dataString +=",";
-       dataString += loc;
+       dataString += GPS.longitude;
 
-     
+    Serial.println("..........................");
+    Serial.println("..........................");
+    Serial.println(dataString);   //이렇게 해주면 값은 제대로 찍혀 나온다.. 다만 sd카드에 저장이 안된다
+    Serial.println("..........................");
+    Serial.println("..........................");
 
-       File dataFile = SD.open("file.csv", FILE_WRITE);
+
+      File dataFile = SD.open("file.csv", FILE_WRITE);
       if (dataFile) 
       {
         set_green_pin(3);
-        //dataFile.println(dataString);
+        dataFile.println(dataString);
         dataFile.close();
       }
       else 
@@ -356,6 +297,9 @@ void read_gps_write_to_sd()
     }
   }
 }
+
+
+
 
 
 
