@@ -241,17 +241,19 @@ void read_gps_write_to_sd()
       latitude +=",";
       longitude += GPS.longitude;
       longitude +=",";
+      dateString += date;
+      dateString += ",";
       timeString += time;
       timeString += ",";
+      
 
-      File  dataFile = SD.open("file2.csv", FILE_WRITE);
+      File  dataFile = SD.open("file.csv", FILE_WRITE);
       if (dataFile) 
       {
-        dataFile.print(latitude);
-        dataFile.print(longitude);
+        dataFile.print(dateString);
         dataFile.print(timeString);
-        dataFile.println(dateString);
-        dataFile.println("\n");
+        dataFile.print(latitude);
+        dataFile.println(longitude);
         dataFile.close();
         set_green_pin(3);
       }
