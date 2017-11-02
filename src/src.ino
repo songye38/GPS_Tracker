@@ -178,8 +178,10 @@ void initialize_sd()
 void read_gps_write_to_sd()
 {
   String dataString = "";
+  String timeString = "";
+  String dateString ="";
   String latitude;
-  String logitude;
+  String longitude;
   String date;
   String time;
   // in case you are not using the interrupt above, you'll
@@ -218,13 +220,8 @@ void read_gps_write_to_sd()
     String sec = String(GPS.seconds);
     
     time = hour + ":" + minu + ":" + sec;
-//    dataString += time;
-//    dataString +=",";
-    //strcpy(fTime, time.c_str());
+
     // 시분초를 HH:MM:SS형태로 바꿔주고, String값을 char*로 바꿔주어 LCD에 출력할 수 있도록 합니다.
-    
-    //delete [] fTime;
-    // 시분초를 LCD에 출력해 줍니다.
     
     String day = String(GPS.day);
     String month = String(GPS.month);
@@ -233,63 +230,35 @@ void read_gps_write_to_sd()
     date = "20" + year + "/" + month + "/" + day;
    
     char *fDate = new char[date.length() + 1];
-//     date = fDate;
-//     dataString += date;
-//     dataString +=",";
-     
-    //strcpy(fDate, date.c_str());
-    // 년월일를 YY/MM/DD형태로 바꿔주고, String값을 char*로 바꿔주어 LCD에 출력할 수 있도록 합니다.
-
  
     delete [] fDate;
     // 년월일을 LCD에 출력해 줍니다.
 
     if (GPS.fix) {
       set_green_pin(1);
-      dataString += time;
-      dataString +=",";
-      dataString += date;
-      dataString +=",";
-//      char lat[20];
-//      char loc[20];
-//      dtostrf(GPS.latitude, 9, 4, lat);
-//      dtostrf(GPS.longitude, 9, 4, loc);
-      // dtostrf는 GPS.latitude와 GPS.longitude의 값(float값)을 Char* 로 바꿔줍니다.
 
-//      lat[4] = lat[3];
-//      lat[3] = lat[2];
-//      lat[2] = ' ';
-//            
-//      loc[5] = loc[4];
-//      loc[4] = loc[3];
-//      loc[3] = ' ';
+      latitude += GPS.latitude;
+      latitude +=",";
+      longitude += GPS.longitude;
+      longitude +=",";
+      timeString += time;
+      timeString += ",";
 
-      
-      // GPS.latitude와 GPS.longitude값을 받아오면 소숫점 자리가 4번째 자리에 찍혀 있습니다.
-      // latitude = 3728,8640, longitude = 12700.8960
-      // 이것을 소수점 두번째 자리에 찍는 작업입니다.      
-       dataString += GPS.latitude;
-       dataString +=",";
-       dataString += GPS.longitude;
-
-    Serial.println("..........................");
-    Serial.println("..........................");
-    Serial.println(dataString);   //이렇게 해주면 값은 제대로 찍혀 나온다.. 다만 sd카드에 저장이 안된다
-    Serial.println("..........................");
-    Serial.println("..........................");
-
-
-      File dataFile = SD.open("file.csv", FILE_WRITE);
+      File  dataFile = SD.open("file2.csv", FILE_WRITE);
       if (dataFile) 
       {
-        set_green_pin(3);
-        dataFile.println(dataString);
+        dataFile.print(latitude);
+        dataFile.print(longitude);
+        dataFile.print(timeString);
+        dataFile.println(dateString);
+        dataFile.println("\n");
         dataFile.close();
+        set_green_pin(3);
       }
       else 
       {
         set_red_pin(3);
-      }
+      }  
     }
     else 
     {
