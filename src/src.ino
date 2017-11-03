@@ -240,7 +240,6 @@ void read_gps_write_to_sd()
       latitude += GPS.latitude;
       latitude +=",";
       longitude += GPS.longitude;
-      longitude +=",";
       dateString += date;
       dateString += ",";
       timeString += time;
